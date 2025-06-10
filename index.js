@@ -33,8 +33,8 @@ app.use("/users", users);
 let products = require("./Routes/products.routes");
 app.use("/products", products);
 
-let cart = require("./Routes/cart.routes");
-app.use("/cart", cart);
+let carts = require("./Routes/carts.routes");
+app.use("/carts", carts);
 
 app.listen(PORT, (err) => {
   if (!err) console.log(`Server is running on port`, PORT);
