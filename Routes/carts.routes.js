@@ -1,7 +1,8 @@
 let express = require("express");
 let cartRouter = express.Router();
 let Cart = require("../Models/cart");
-const Product = require("../Models/product"); // נתיב לדגם המוצרים
+let Product = require("../Models/product");
+let Order = require("../Models/order"); // נתיב לדגם ההזמנות
 
 cartRouter.get("/:email", async (req, res) => {
   try {
@@ -85,9 +86,15 @@ cartRouter.put("/cart/pay/:email", async (req, res) => {
       await product.save();
     }
 
+    const newOrder = new Order({
+      email,
+      items: userCart.items,
+    });
+    await newOrder.save();
+
     // 3. נקה את תוכן העגלה (אפשר גם למחוק את המסמך כולו אם אתה מעדיף)
-    userCart.payed = true;
-    await userCart.save();
+
+    await Cart.deleteOne({ _id: userCart._id });
 
     res.json({
       message: "Payment successful. Cart cleared and stock updated.",

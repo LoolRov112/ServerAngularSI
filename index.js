@@ -36,6 +36,9 @@ app.use("/products", products);
 let carts = require("./Routes/carts.routes");
 app.use("/carts", carts);
 
+let orders = require("./Routes/orders.routes");
+app.use("/orders", orders);
+
 app.listen(PORT, (err) => {
   if (!err) console.log(`Server is running on port`, PORT);
   else console.log("Error starting server", err);
