@@ -1,6 +1,7 @@
 let express = require("express");
 let cartRouter = express.Router();
 let Cart = require("../Models/cart");
+const Product = require("../Models/product"); // נתיב לדגם המוצרים
 
 cartRouter.get("/:email", async (req, res) => {
   try {
@@ -56,6 +57,46 @@ cartRouter.post("/addToCart", async (req, res) => {
   } catch (error) {
     console.error("Error adding to cart:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+cartRouter.put("/cart/pay/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    const userCart = await Cart.findOne({ email });
+
+    if (!userCart || userCart.items.length === 0) {
+      return res.status(404).json({ message: "Cart is empty or not found" });
+    }
+
+    for (const cartItem of userCart.items) {
+      const product = await Product.findById(cartItem.productId);
+      if (!product) continue;
+
+      // ודא שיש מספיק מלאי
+      if (product.stock < cartItem.quantity) {
+        return res
+          .status(400)
+          .json({ message: `Not enough stock for ${product.name}` });
+      }
+
+      // עדכן מלאי
+      product.stock -= cartItem.quantity;
+      await product.save();
+    }
+
+    // 3. נקה את תוכן העגלה (אפשר גם למחוק את המסמך כולו אם אתה מעדיף)
+    userCart.payed = true;
+    await userCart.save();
+
+    res.json({
+      message: "Payment successful. Cart cleared and stock updated.",
+    });
+  } catch (error) {
+    console.error("Error processing payment:", error);
+    res
+      .status(500)
+      .json({ message: "Error processing payment.", error: error.message });
   }
 });
 
